@@ -3,25 +3,25 @@ services:
   - docker
 env:
   global:
-    - SHA=$(git rev-parse HEAD) 
-    - CLOUDSDK_CORE_DISABLE_PROMPTS=1 
+    - SHA=$(git rev-parse HEAD) #add git sha environment variable
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1 #no prompt from cloud sdk
 before_install:
-  - openssl aes-256-cbc -K $encrypted_60df1e4a890f_key -iv $encrypted_60df1e4a890f_iv -in service-account.json.enc -out service-account.json -d 
-  - curl https://sdk.cloud.google.com | bash > /dev/null; 
-  - source $HOME/google-cloud-sdk/path.bash.inc 
-  - gcloud components update kubectl 
-  - gcloud auth activate-service-account --key-file service-account.json 
-  - gcloud config set project multi-k8s-237109 
-  - gcloud config set compute/zone asia-southeast1-a	
-  - gcloud container clusters get-credentials multi-cluster 
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin 
-  - docker build -t thetkpark/react-test -f ./client/Dockerfile.dev ./client 
+  - openssl aes-256-cbc -K $encrypted_60df1e4a890f_key -iv $encrypted_60df1e4a890f_iv -in service-account.json.enc -out service-account.json -d #decrypt auth json file from trvis server
+  - curl https://sdk.cloud.google.com | bash > /dev/null; #install gcloud sdk
+  - source $HOME/google-cloud-sdk/path.bash.inc #install gcloud sdk
+  - gcloud components update kubectl #install kubectl
+  - gcloud auth activate-service-account --key-file service-account.json #authen the gcp account
+  - gcloud config set project multi-k8s-237109 #select the project
+  - gcloud config set compute/zone asia-southeast1-a	#select the zone
+  - gcloud container clusters get-credentials multi-cluster #select the cluster
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin #login to docker hub
+  - docker build -t thetkpark/react-test -f ./client/Dockerfile.dev ./client # build test image
 
 script:
-  - docker run thetkpark/react-test npm test -- --coverage 
+  - docker run thetkpark/react-test npm test -- --coverage # run test
 
 deploy:
-  provider: script 
-  script: bash ./deploy.sh 
+  provider: script # told travis to just run the command
+  script: bash ./deploy.sh #run deploy.sh
   on:
     branch: master
